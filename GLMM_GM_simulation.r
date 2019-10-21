@@ -1,11 +1,4 @@
-# combined first, then split as different files
-
-
 library("lme4")
-# source("ul_ci.r")
-
-
-
 
 # data generating process of unbalanced Binomial Data with one Gaussian random effect
 sim_ul_group_time_paper <- function(
@@ -251,10 +244,7 @@ ul_ci <- function(
   C_wave <- cbind(rbind(t(X)%*%W_wave%*%X,t(Z)%*%W_wave%*%X),rbind(t(X)%*%W_wave%*%Z,t(Z)%*%W_wave%*%Z+G_inv))
   nrow(C_wave);ncol(C_wave)
 
-  
-  
-  
-  
+   
   # vector to store coverage prability (whether population group mean inside/outside the interval)
   cp_logitlink = rep(0,n_group)    
   cp_clt = rep(0,n_group)
@@ -458,10 +448,7 @@ ul_ci <- function(
 }
 
 
-
 ########################################################################################
-
-
 
 
 ul_pi <- function(
@@ -506,9 +493,6 @@ ul_pi <- function(
   ####################################
   
   
-  
-  ###################pi######################################  
-  
   weights_working_vector <- weights(glmm.laplace,type="working")
   W_wave <- diag(weights_working_vector)
   nrow(W_wave);ncol(W_wave)
@@ -522,10 +506,7 @@ ul_pi <- function(
   
   C_wave <- cbind(rbind(t(X)%*%W_wave%*%X,t(Z)%*%W_wave%*%X),rbind(t(X)%*%W_wave%*%Z,t(Z)%*%W_wave%*%Z+G_inv))
   nrow(C_wave);ncol(C_wave)
-  
-  #########pi###############################################  
-  
-  
+ 
   
   cp_logitlink = rep(0,n_group)
   cp_clt = rep(0,n_group)
@@ -546,11 +527,8 @@ ul_pi <- function(
     
     # get adjusted z_i and z_i for group i
     x_i <- X[k:(k+ni[i]-1),];
-    z_i <- Z[k:(k+ni[i]-1),];  
-    
-    
-    #####################pi############
-    
+    z_i <- Z[k:(k+ni[i]-1),];     
+ 
     
     L_i <- rbind(t(x_i),t(z_i));   #generate L
     #nrow(L_i);ncol(L_i)
@@ -615,14 +593,12 @@ ul_pi <- function(
     mu_z_star_hat <- mean(exp(as.numeric(c(1,x1_i,x2_i,x3_i)%*%beta_hat)+b_hat)/(1+exp(as.numeric(c(1,x1_i,x2_i,x3_i)%*%beta_hat)+b_hat)))
     result[i,7] <- mu_z_star_hat   # input mu_z_star_hat
     
-    ##############pi###################    
     
     mu_l  <- mean(mydata[k:(k+ni[i]-1),7])     # mu_bar : mean of each mu_i
     result[i,13] <- mu_l  # input mu_l
     # Y_bar <- mean(y_i)
     
-    ###############pi##############   
-    
+
     # Calculate the population value of mu_bar (i.e average of each mu)
     mu_i <- mydata[(mydata[,4]==result[i,3] & mydata[,5]==result[i,4]),7];  # observed y for each group
     mu_bar_i  <- mean(mu_i)     # mu_bar : mean of each mu_i
@@ -717,8 +693,6 @@ ul_pi <- function(
   
 
 ##############################################################################################
-
-
 
 
 unb_ci <- function(
@@ -1259,85 +1233,6 @@ my_sim
 my_sim = unb_pi()
 my_sim
 
-
-
-
-# setup of parameters
-alpha = 0.05  # signifcant level for CI: e.g. 1-0.05=95% confidence inverval
-rep_sim = 1  # replication times for simulation, but in cluster, each job we usually only simulate once 
-#set.seed(100)
-
-
-
-# simulation for coverage probabiliy in several repetitions
-ul_ci_cp1_m = matrix(NA,ncol=4,nrow=rep_sim)
-ul_ci_cp2_m = matrix(NA,ncol=4,nrow=rep_sim)
-ul_ci_cp3_m = matrix(NA,ncol=4,nrow=rep_sim)
-for(i in 1:rep_sim){
-  my_sim = ul_ci()
-  ul_ci_cp1_m[i,] = my_sim$cp_logitlink
-  ul_ci_cp2_m[i,] = my_sim$cp_clt
-  ul_ci_cp3_m[i,] = my_sim$cp_lognorm
-}
-my_sim$y_bar
-# display cp in the simulations
-apply(ul_ci_cp1_m, 2, mean)
-apply(ul_ci_cp2_m, 2, mean)
-apply(ul_ci_cp3_m, 2, mean)
-
-
-
-# simulation for coverage probabiliy in several repetitions
-ul_pi_cp1_m = matrix(0,ncol=4,nrow=rep_sim)
-ul_pi_cp2_m = matrix(0,ncol=4,nrow=rep_sim)
-ul_pi_cp3_m = matrix(0,ncol=4,nrow=rep_sim)
-for(i in 1:rep_sim){
-  my_sim = ul_pi()
-  ul_pi_cp1_m[i,] = my_sim$cp_logitlink
-  ul_pi_cp2_m[i,] = my_sim$cp_clt
-  ul_pi_cp3_m[i,] = my_sim$cp_lognorm
-}
-
-# display cp in the simulations
-apply(ul_pi_cp1_m, 2, mean)
-apply(ul_pi_cp2_m, 2, mean)
-apply(ul_pi_cp3_m, 2, mean)
-
-
-
-# simulation for coverage probabiliy in several repetitions
-unb_ci_cp1_m = matrix(0,ncol=4,nrow=rep_sim)
-unb_ci_cp2_m = matrix(0,ncol=4,nrow=rep_sim)
-unb_ci_cp3_m = matrix(0,ncol=4,nrow=rep_sim)
-for(i in 1:rep_sim){
-  my_sim = unb_ci()
-  unb_ci_cp1_m[i,] = my_sim$cp_loglink
-  unb_ci_cp2_m[i,] = my_sim$cp_clt
-  unb_ci_cp3_m[i,] = my_sim$cp_lognorm
-}
-
-# display cp in the simulations
-apply(unb_ci_cp1_m, 2, mean)
-apply(unb_ci_cp2_m, 2, mean)
-apply(unb_ci_cp3_m, 2, mean)
-
-
-
-# simulation for coverage probabiliy in several repetitions
-unb_pi_cp1_m = matrix(0,ncol=4,nrow=rep_sim)
-unb_pi_cp2_m = matrix(0,ncol=4,nrow=rep_sim)
-unb_pi_cp3_m = matrix(0,ncol=4,nrow=rep_sim)
-for(i in 1:rep_sim){
-  my_sim = unb_pi()
-  unb_pi_cp1_m[i,] = my_sim$cp_loglink
-  unb_pi_cp2_m[i,] = my_sim$cp_clt
-  unb_pi_cp3_m[i,] = my_sim$cp_lognorm
-}
-
-# display cp in the simulations
-apply(unb_pi_cp1_m, 2, mean)
-apply(unb_pi_cp2_m, 2, mean)
-apply(unb_pi_cp3_m, 2, mean)
 
 
 
